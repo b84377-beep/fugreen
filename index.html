@@ -1,6 +1,85 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
+<style>
+  /* Fu Green — font & dark-mode controls */
+  :root {
+    --fg-bg: #ffffff;
+    --fg-text: #111111;
+    --fg-accent: #0b6d3a;
+  }
+
+  body.fg-dark {
+    background: #0b0b0b !important;
+    color: #e9f1ea !important;
+  }
+  body.fg-dark a { color: #8fd9a4 !important; }
+  body.fg-dark header, body.fg-dark footer, body.fg-dark .card {
+    background-color: rgba(255,255,255,0.02) !important;
+  }
+
+  /* Ensure root font-size adjustable (affects rem/em) */
+  html { font-size: 16px; }
+
+  /* control UI */
+  .fg-controls {
+    position: fixed;
+    right: 18px;
+    top: 18px;
+    z-index: 9999;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: rgba(255,255,255,0.9);
+    padding: 6px;
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(10,10,10,0.12);
+    backdrop-filter: blur(4px);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial;
+  }
+
+  body.fg-dark .fg-controls {
+    background: rgba(0,0,0,0.55);
+    color: #eee;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+  }
+
+  .fg-controls button,
+  .fg-controls .fg-toggle {
+    -webkit-appearance: none;
+    appearance: none;
+    border: 0;
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    background: transparent;
+  }
+
+  .fg-controls button:hover { background: rgba(0,0,0,0.06); }
+  body.fg-dark .fg-controls button:hover { background: rgba(255,255,255,0.06); }
+
+  .fg-controls button.active {
+    outline: 2px solid var(--fg-accent);
+    box-shadow: 0 2px 6px rgba(11,109,58,0.14);
+  }
+
+  .fg-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(0,0,0,0.08);
+  }
+  body.fg-dark .fg-toggle { border-color: rgba(255,255,255,0.08); }
+
+  /* small responsive tweak so it doesn't block content on small screens */
+  @media (max-width:520px) {
+    .fg-controls { right: 10px; top: 10px; padding: 4px; gap: 6px; }
+    .fg-controls button { padding: 6px; font-size: 0.9rem; }
+  }
+</style>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Fu Green — 輔仁大學圖書館智慧永續</title>
@@ -133,7 +212,7 @@
       <h2 style="font-size:18px">期程規劃</h2>
       <div class="timeline">
         <div class="step"><div class="dot"></div><div><strong>2026 Q1</strong><p class="muted">規劃與需求調查，建立能源資料基線。</p></div></div>
-        <div class="step"><div class="dot"></div><div><strong>2026 Q2</strong><p class="muted">開發 Fu Bot 與能源儀表板，進行 Prototype 測試。</p></div></div>
+        <div class="step"><div class="dot"></div><div><strong>2026 Q2</strong><p class="muted">開發 Fu Bot 與能源儀表板，進行測試。</p></div></div>
         <div class="step"><div class="dot"></div><div><strong>2026 Q3</strong><p class="muted">公測與教育推廣，舉辦 10 場綠色挑戰活動。</p></div></div>
         <div class="step"><div class="dot"></div><div><strong>2026 Q4</strong><p class="muted">成果彙整，能源下降預期達 12%，形成最佳實踐報告。</p></div></div>
       </div>
@@ -215,5 +294,95 @@
       }
     });
   </script>
+<!-- Font size + Dark mode controls (貼到 body 結尾前) -->
+<div class="fg-controls" aria-hidden="false" role="region" aria-label="調整字級與黑暗模式">
+  <div title="字級小">
+    <button id="fg-font-small" aria-label="字級小">A-</button>
+  </div>
+  <div title="字級中（預設）">
+    <button id="fg-font-normal" aria-label="字級中">A</button>
+  </div>
+  <div title="字級大">
+    <button id="fg-font-large" aria-label="字級大">A+</button>
+  </div>
+
+  <div class="fg-toggle" style="margin-left:6px;">
+    <label style="display:inline-flex;align-items:center;gap:8px;">
+      <input id="fg-dark-toggle" type="checkbox" aria-label="切換深色背景" />
+      <span style="font-size:0.95rem;">黑暗</span>
+    </label>
+  </div>
+</div>
+
+<script>
+(function() {
+  const KEY_FONT = 'fg-font-size';
+  const KEY_DARK = 'fg-dark-mode';
+
+  // font size values (px)
+  const sizes = {
+    small: 14,
+    normal: 16,
+    large: 18
+  };
+
+  // elements
+  const btnSmall = document.getElementById('fg-font-small');
+  const btnNormal = document.getElementById('fg-font-normal');
+  const btnLarge = document.getElementById('fg-font-large');
+  const darkToggle = document.getElementById('fg-dark-toggle');
+
+  function applyFontSize(sizeName) {
+    const px = sizes[sizeName] || sizes.normal;
+    document.documentElement.style.fontSize = px + 'px';
+    localStorage.setItem(KEY_FONT, sizeName);
+    // update active state
+    [btnSmall, btnNormal, btnLarge].forEach(b => b.classList.remove('active'));
+    if (sizeName === 'small') btnSmall.classList.add('active');
+    if (sizeName === 'normal') btnNormal.classList.add('active');
+    if (sizeName === 'large') btnLarge.classList.add('active');
+  }
+
+  function applyDarkMode(on) {
+    if (on) {
+      document.body.classList.add('fg-dark');
+      darkToggle.checked = true;
+      localStorage.setItem(KEY_DARK, '1');
+    } else {
+      document.body.classList.remove('fg-dark');
+      darkToggle.checked = false;
+      localStorage.removeItem(KEY_DARK);
+    }
+  }
+
+  // Attach events
+  btnSmall.addEventListener('click', () => applyFontSize('small'));
+  btnNormal.addEventListener('click', () => applyFontSize('normal'));
+  btnLarge.addEventListener('click', () => applyFontSize('large'));
+  darkToggle.addEventListener('change', (e) => applyDarkMode(e.target.checked));
+
+  // Init from localStorage
+  const savedFont = localStorage.getItem(KEY_FONT) || 'normal';
+  applyFontSize(savedFont);
+
+  const savedDark = localStorage.getItem(KEY_DARK);
+  applyDarkMode(!!savedDark);
+
+  // Accessibility: keyboard shortcuts (optional)
+  document.addEventListener('keydown', function(e) {
+    // Ctrl + + / Ctrl + - / Ctrl + 0 to toggle sizes
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey) {
+      if (e.key === '+') { applyFontSize('large'); e.preventDefault(); }
+      if (e.key === '-') { applyFontSize('small'); e.preventDefault(); }
+      if (e.key === '0') { applyFontSize('normal'); e.preventDefault(); }
+    }
+    // Ctrl + D to toggle dark mode
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
+      applyDarkMode(!document.body.classList.contains('fg-dark'));
+      e.preventDefault();
+    }
+  });
+})();
+</script>
 </body>
 </html>
